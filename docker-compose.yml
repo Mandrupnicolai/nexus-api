@@ -1,0 +1,115 @@
+version: '3.9'
+
+# =============================================================================
+# NexusAPI — Docker Compose Stack
+#
+# Runs the complete application stack locally with a single command:
+#   docker-compose up --build
+#
+# Services:
+#   postgres  — PostgreSQL 16 (primary database)
+#   redis     — Redis 7 (cache + session store)
+#   api       — Spring Boot application
+#
+# Health checks ensure services start in dependency order.
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: nexusapi-postgres
+    environment:
+      POSTGRES_DB: nexusapi
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: nexus_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      # Named volume persists data between container restarts
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus -d nexusapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - nexusapi-network
+
+  # ---------------------------------------------------------------------------
+  # Redis
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: nexusapi-redis
+    command: redis-server --appendonly yes --requirepass redis_secret
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redis_secret", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nexusapi-network
+
+  # ---------------------------------------------------------------------------
+  # Spring Boot API
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexusapi-app
+    ports:
+      - "8080:8080"
+    environment:
+      # Database
+      DB_URL: jdbc:postgresql://postgres:5432/nexusapi
+      DB_USERNAME: nexus
+      DB_PASSWORD: nexus_secret
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis_secret
+      # JWT — change this secret in any real deployment
+      JWT_SECRET: bmV4dXNhcGktc3VwZXItc2VjcmV0LWtleS1jaGFuZ2UtaW4tcHJvZHVjdGlvbg==
+      JWT_EXPIRATION: 86400000
+      # Logging
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - nexusapi-network
+    restart: unless-stopped
+
+# ---------------------------------------------------------------------------
+# Volumes
+# ---------------------------------------------------------------------------
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ---------------------------------------------------------------------------
+# Networks
+# ---------------------------------------------------------------------------
+networks:
+  nexusapi-network:
+    driver: bridge
