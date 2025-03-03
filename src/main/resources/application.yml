@@ -1,0 +1,42 @@
+﻿spring:
+  application:
+    name: nexus-api
+
+  datasource:
+    url: jdbc:postgresql://:/
+    username: 
+    password: 
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: 
+      port: 
+
+  cache:
+    type: redis
+
+server:
+  port: 8080
+
+jwt:
+  secret: 
+  expiration-ms: 86400000
+
+logging:
+  level:
+    com.nexusapi: DEBUG
+    org.springframework.security: INFO
