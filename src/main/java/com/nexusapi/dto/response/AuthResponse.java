@@ -1,4 +1,4 @@
-﻿package com.nexusapi.dto.response;
+ackage com.nexusapi.dto.response;
 
 public class AuthResponse {
     private String accessToken;

@@ -1,4 +1,4 @@
-﻿package com.nexusapi.exception;
+ackage com.nexusapi.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.OffsetDateTime;

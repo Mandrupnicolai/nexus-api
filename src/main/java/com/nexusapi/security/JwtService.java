@@ -1,4 +1,4 @@
-package com.nexusapi.security;
+ackage com.nexusapi.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;

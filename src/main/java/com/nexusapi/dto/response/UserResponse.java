@@ -1,4 +1,4 @@
-﻿package com.nexusapi.dto.response;
+ackage com.nexusapi.dto.response;
 
 import java.util.UUID;
 

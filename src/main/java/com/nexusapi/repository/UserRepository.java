@@ -1,4 +1,4 @@
-﻿package com.nexusapi.repository;
+ackage com.nexusapi.repository;
 
 import com.nexusapi.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;

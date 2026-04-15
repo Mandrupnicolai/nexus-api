@@ -1,4 +1,4 @@
-﻿package com.nexusapi.exception;
+ackage com.nexusapi.exception;
 
 public class ConflictException extends RuntimeException {
     public ConflictException(String message) { super(message); }

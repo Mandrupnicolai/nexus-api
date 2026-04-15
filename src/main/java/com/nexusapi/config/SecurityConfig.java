@@ -1,4 +1,4 @@
-package com.nexusapi.config;
+ackage com.nexusapi.config;
 
 import com.nexusapi.repository.UserRepository;
 import com.nexusapi.security.JwtAuthenticationFilter;

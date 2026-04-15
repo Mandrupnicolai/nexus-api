@@ -1,4 +1,4 @@
-﻿package com.nexusapi.config;
+ackage com.nexusapi.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

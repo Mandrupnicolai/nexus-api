@@ -1,4 +1,4 @@
-﻿package com.nexusapi.entity;
+ackage com.nexusapi.entity;
 
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;

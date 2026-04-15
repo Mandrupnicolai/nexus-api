@@ -1,4 +1,4 @@
-﻿package com.nexusapi.dto.request;
+ackage com.nexusapi.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

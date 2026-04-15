@@ -1,4 +1,4 @@
-﻿package com.nexusapi.exception;
+ackage com.nexusapi.exception;
 
 public class ForbiddenException extends RuntimeException {
     public ForbiddenException(String message) { super(message); }
