@@ -1,4 +1,4 @@
-ackage com.nexusapi.service;
+package com.nexusapi.service;
 
 import com.nexusapi.dto.request.LoginRequest;
 import com.nexusapi.dto.request.RegisterRequest;
