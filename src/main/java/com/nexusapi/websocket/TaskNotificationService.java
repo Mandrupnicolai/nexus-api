@@ -1,4 +1,4 @@
-ackage com.nexusapi.websocket;
+package com.nexusapi.websocket;
 
 import com.nexusapi.dto.response.TaskResponse;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

@@ -1,4 +1,4 @@
-ackage com.nexusapi.service.impl;
+package com.nexusapi.service.impl;
 
 import com.nexusapi.dto.request.LoginRequest;
 import com.nexusapi.dto.request.RegisterRequest;
@@ -27,10 +27,10 @@ public class AuthServiceImpl implements AuthService {
     private final TaskMapper taskMapper;
 
     public AuthServiceImpl(UserRepository userRepository,
-                           PasswordEncoder passwordEncoder,
-                           JwtService jwtService,
-                           AuthenticationManager authenticationManager,
-                           TaskMapper taskMapper) {
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService,
+            AuthenticationManager authenticationManager,
+            TaskMapper taskMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -44,7 +44,7 @@ public class AuthServiceImpl implements AuthService {
             throw new ConflictException("Email already registered: " + request.getEmail());
         }
         User user = new User();
-        user.setDisplayName(request.getDisplayName());
+        user.setFullName(request.getDisplayName());
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
@@ -57,10 +57,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
         User user = userRepository.findByEmailAndDeletedAtIsNull(request.getEmail())
-            .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
         String token = jwtService.generateToken(user);
         UserResponse userResponse = taskMapper.toUserResponse(user);
         return new AuthResponse(token, jwtService.getExpirationMs() / 1000, userResponse);

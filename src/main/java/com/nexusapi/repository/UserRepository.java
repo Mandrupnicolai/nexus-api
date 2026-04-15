@@ -1,4 +1,4 @@
-ackage com.nexusapi.repository;
+package com.nexusapi.repository;
 
 import com.nexusapi.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,5 +9,6 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmailAndDeletedAtIsNull(String email);
+
     boolean existsByEmailAndDeletedAtIsNull(String email);
 }

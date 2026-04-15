@@ -1,4 +1,4 @@
-ackage com.nexusapi.controller;
+package com.nexusapi.controller;
 
 import com.nexusapi.dto.request.CreateTaskRequest;
 import com.nexusapi.dto.request.UpdateTaskRequest;
@@ -27,15 +27,17 @@ import java.util.UUID;
 /**
  * REST controller for task CRUD operations.
  *
- * <p>All endpoints require a valid JWT Bearer token.
+ * <p>
+ * All endpoints require a valid JWT Bearer token.
  * Base path: {@code /api/v1/tasks}
  *
- * <p>Follows REST conventions:
+ * <p>
+ * Follows REST conventions:
  * <ul>
- *   <li>GET    → read, idempotent, cacheable</li>
- *   <li>POST   → create, returns 201 with Location header</li>
- *   <li>PATCH  → partial update (preferred over PUT for partial updates)</li>
- *   <li>DELETE → soft delete, returns 204 No Content</li>
+ * <li>GET → read, idempotent, cacheable</li>
+ * <li>POST → create, returns 201 with Location header</li>
+ * <li>PATCH → partial update (preferred over PUT for partial updates)</li>
+ * <li>DELETE → soft delete, returns 204 No Content</li>
  * </ul>
  */
 @RestController
@@ -64,30 +66,28 @@ public class TaskController {
     @GetMapping
     @Operation(summary = "List tasks for a project")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Tasks retrieved"),
-        @ApiResponse(responseCode = "403", description = "Not a team member"),
-        @ApiResponse(responseCode = "404", description = "Project not found")
+            @ApiResponse(responseCode = "200", description = "Tasks retrieved"),
+            @ApiResponse(responseCode = "403", description = "Not a team member"),
+            @ApiResponse(responseCode = "404", description = "Project not found")
     })
     public ResponseEntity<PagedResponse<TaskResponse>> getTasks(
-        @RequestParam UUID projectId,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size,
-        @RequestParam(defaultValue = "position,asc") String sort,
-        @AuthenticationPrincipal User currentUser
-    ) {
+            @RequestParam UUID projectId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "position,asc") String sort,
+            @AuthenticationPrincipal User currentUser) {
         // Clamp page size to prevent abuse
         int clampedSize = Math.min(size, 100);
 
         String[] sortParts = sort.split(",");
         Sort.Direction direction = sortParts.length > 1 && sortParts[1].equalsIgnoreCase("desc")
-            ? Sort.Direction.DESC
-            : Sort.Direction.ASC;
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
 
         Page<TaskResponse> tasks = taskService.getTasksByProject(
-            projectId,
-            PageRequest.of(page, clampedSize, Sort.by(direction, sortParts[0])),
-            currentUser
-        );
+                projectId,
+                PageRequest.of(page, clampedSize, Sort.by(direction, sortParts[0])),
+                currentUser);
 
         return ResponseEntity.ok(PagedResponse.from(tasks));
     }
@@ -106,14 +106,13 @@ public class TaskController {
     @GetMapping("/{id}")
     @Operation(summary = "Get task by ID")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Task found"),
-        @ApiResponse(responseCode = "403", description = "Access denied"),
-        @ApiResponse(responseCode = "404", description = "Task not found")
+            @ApiResponse(responseCode = "200", description = "Task found"),
+            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "404", description = "Task not found")
     })
     public ResponseEntity<TaskResponse> getTaskById(
-        @PathVariable("id") @Parameter(description = "Task UUID") UUID taskId,
-        @AuthenticationPrincipal User currentUser
-    ) {
+            @PathVariable("id") @Parameter(description = "Task UUID") UUID taskId,
+            @AuthenticationPrincipal User currentUser) {
         return ResponseEntity.ok(taskService.getTaskById(taskId, currentUser));
     }
 
@@ -124,7 +123,8 @@ public class TaskController {
     /**
      * Creates a new task.
      *
-     * <p>{@code @Valid} triggers bean validation on the request body.
+     * <p>
+     * {@code @Valid} triggers bean validation on the request body.
      * Validation errors are caught by {@link GlobalExceptionHandler} and
      * returned as a structured 400 response.
      *
@@ -135,15 +135,14 @@ public class TaskController {
     @PostMapping
     @Operation(summary = "Create a new task")
     @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Task created"),
-        @ApiResponse(responseCode = "400", description = "Validation failed"),
-        @ApiResponse(responseCode = "403", description = "Not a team member"),
-        @ApiResponse(responseCode = "404", description = "Project or assignee not found")
+            @ApiResponse(responseCode = "201", description = "Task created"),
+            @ApiResponse(responseCode = "400", description = "Validation failed"),
+            @ApiResponse(responseCode = "403", description = "Not a team member"),
+            @ApiResponse(responseCode = "404", description = "Project or assignee not found")
     })
     public ResponseEntity<TaskResponse> createTask(
-        @Valid @RequestBody CreateTaskRequest request,
-        @AuthenticationPrincipal User currentUser
-    ) {
+            @Valid @RequestBody CreateTaskRequest request,
+            @AuthenticationPrincipal User currentUser) {
         TaskResponse created = taskService.createTask(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
@@ -155,7 +154,8 @@ public class TaskController {
     /**
      * Partially updates a task.
      *
-     * <p>Uses PATCH (not PUT) because clients typically update one field at a time
+     * <p>
+     * Uses PATCH (not PUT) because clients typically update one field at a time
      * (e.g. drag to change status, click to change assignee). All fields in the
      * request body are optional — only non-null fields are applied.
      *
@@ -167,16 +167,15 @@ public class TaskController {
     @PatchMapping("/{id}")
     @Operation(summary = "Update a task (partial)")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Task updated"),
-        @ApiResponse(responseCode = "400", description = "Invalid status transition"),
-        @ApiResponse(responseCode = "403", description = "Access denied"),
-        @ApiResponse(responseCode = "404", description = "Task not found")
+            @ApiResponse(responseCode = "200", description = "Task updated"),
+            @ApiResponse(responseCode = "400", description = "Invalid status transition"),
+            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "404", description = "Task not found")
     })
     public ResponseEntity<TaskResponse> updateTask(
-        @PathVariable("id") UUID taskId,
-        @Valid @RequestBody UpdateTaskRequest request,
-        @AuthenticationPrincipal User currentUser
-    ) {
+            @PathVariable("id") UUID taskId,
+            @Valid @RequestBody UpdateTaskRequest request,
+            @AuthenticationPrincipal User currentUser) {
         return ResponseEntity.ok(taskService.updateTask(taskId, request, currentUser));
     }
 
@@ -194,14 +193,13 @@ public class TaskController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a task")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Task deleted"),
-        @ApiResponse(responseCode = "403", description = "Not the task creator or admin"),
-        @ApiResponse(responseCode = "404", description = "Task not found")
+            @ApiResponse(responseCode = "204", description = "Task deleted"),
+            @ApiResponse(responseCode = "403", description = "Not the task creator or admin"),
+            @ApiResponse(responseCode = "404", description = "Task not found")
     })
     public ResponseEntity<Void> deleteTask(
-        @PathVariable("id") UUID taskId,
-        @AuthenticationPrincipal User currentUser
-    ) {
+            @PathVariable("id") UUID taskId,
+            @AuthenticationPrincipal User currentUser) {
         taskService.deleteTask(taskId, currentUser);
         return ResponseEntity.noContent().build();
     }

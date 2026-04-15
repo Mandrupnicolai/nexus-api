@@ -1,4 +1,4 @@
-ackage com.nexusapi.service;
+package com.nexusapi.service;
 
 import com.nexusapi.dto.request.CreateTaskRequest;
 import com.nexusapi.dto.request.UpdateTaskRequest;

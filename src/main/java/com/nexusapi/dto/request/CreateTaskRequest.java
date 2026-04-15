@@ -1,4 +1,4 @@
-ackage com.nexusapi.dto.request;
+package com.nexusapi.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

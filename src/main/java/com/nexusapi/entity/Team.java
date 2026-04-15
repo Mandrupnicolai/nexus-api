@@ -1,4 +1,4 @@
-ackage com.nexusapi.entity;
+package com.nexusapi.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +11,11 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "teams")
-@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Team {
 
     @Id
@@ -48,6 +52,11 @@ public class Team {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
-    public void softDelete() { this.deletedAt = Instant.now(); }
-    public boolean isDeleted() { return deletedAt != null; }
+    public void softDelete() {
+        this.deletedAt = Instant.now();
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
 }

@@ -1,4 +1,4 @@
-ackage com.nexusapi.entity;
+package com.nexusapi.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,11 +13,14 @@ import java.util.UUID;
 /**
  * Core task entity — the primary unit of work in NexusAPI.
  *
- * <p>Tasks belong to a {@link Project} and optionally to an assignee ({@link User}).
+ * <p>
+ * Tasks belong to a {@link Project} and optionally to an assignee
+ * ({@link User}).
  * State transitions are validated in the service layer to enforce the allowed
  * workflow: TODO → IN_PROGRESS → IN_REVIEW → DONE.
  *
- * <p>The {@code position} field supports drag-and-drop reordering on the
+ * <p>
+ * The {@code position} field supports drag-and-drop reordering on the
  * Kanban board without requiring a full table scan.
  */
 @Entity
@@ -121,8 +124,7 @@ public class Task {
     public void transitionTo(Status newStatus, User actor) {
         if (!this.status.canTransitionTo(newStatus)) {
             throw new IllegalStateException(
-                String.format("Cannot transition task from %s to %s", this.status, newStatus)
-            );
+                    String.format("Cannot transition task from %s to %s", this.status, newStatus));
         }
         String oldValue = this.status.name();
         this.status = newStatus;
@@ -134,12 +136,12 @@ public class Task {
         }
 
         activities.add(TaskActivity.builder()
-            .task(this)
-            .actor(actor)
-            .action("STATUS_CHANGED")
-            .oldValue(oldValue)
-            .newValue(newStatus.name())
-            .build());
+                .task(this)
+                .actor(actor)
+                .action("STATUS_CHANGED")
+                .oldValue(oldValue)
+                .newValue(newStatus.name())
+                .build());
     }
 
     /**
@@ -154,12 +156,12 @@ public class Task {
         String newValue = newAssignee != null ? newAssignee.getUsername() : "unassigned";
 
         activities.add(TaskActivity.builder()
-            .task(this)
-            .actor(actor)
-            .action("ASSIGNED")
-            .oldValue(oldValue)
-            .newValue(newValue)
-            .build());
+                .task(this)
+                .actor(actor)
+                .action("ASSIGNED")
+                .oldValue(oldValue)
+                .newValue(newValue)
+                .build());
     }
 
     /** Soft-deletes the task. */

@@ -1,4 +1,4 @@
-ackage com.nexusapi.security;
+package com.nexusapi.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,18 +21,20 @@ import java.io.IOException;
  * JWT authentication filter — runs once per request before Spring Security's
  * standard filter chain.
  *
- * <p>Processing flow:
+ * <p>
+ * Processing flow:
  * <ol>
- *   <li>Extract the {@code Authorization: Bearer <token>} header</li>
- *   <li>If absent or malformed, pass through to the next filter unchanged</li>
- *   <li>Parse and validate the JWT using {@link JwtService}</li>
- *   <li>Load the {@link UserDetails} from the database</li>
- *   <li>If valid, populate the {@link SecurityContextHolder} so downstream
- *       code can access the authenticated user via
- *       {@code SecurityContextHolder.getContext().getAuthentication()}</li>
+ * <li>Extract the {@code Authorization: Bearer <token>} header</li>
+ * <li>If absent or malformed, pass through to the next filter unchanged</li>
+ * <li>Parse and validate the JWT using {@link JwtService}</li>
+ * <li>Load the {@link UserDetails} from the database</li>
+ * <li>If valid, populate the {@link SecurityContextHolder} so downstream
+ * code can access the authenticated user via
+ * {@code SecurityContextHolder.getContext().getAuthentication()}</li>
  * </ol>
  *
- * <p>Stateless design: no session is created or used. Each request must
+ * <p>
+ * Stateless design: no session is created or used. Each request must
  * carry its own JWT. This is the standard approach for REST APIs consumed
  * by mobile apps and SPAs.
  */
@@ -49,10 +51,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-        @NonNull HttpServletRequest request,
-        @NonNull HttpServletResponse response,
-        @NonNull FilterChain filterChain
-    ) throws ServletException, IOException {
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         final String authHeader = request.getHeader(AUTHORIZATION_HEADER);
 
@@ -78,15 +79,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // Create an authenticated token with full authority list.
                     // Setting details allows Spring Security audit logging to
                     // record the originating IP address.
-                    UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
-                            null,  // Credentials are null — the JWT is the credential
-                            userDetails.getAuthorities()
-                        );
+                            null, // Credentials are null — the JWT is the credential
+                            userDetails.getAuthorities());
                     authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                    );
+                            new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                     log.debug("Authenticated user: {}", userEmail);
                 }

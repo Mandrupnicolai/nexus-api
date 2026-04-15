@@ -1,4 +1,4 @@
-ackage com.nexusapi.entity;
+package com.nexusapi.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,7 +8,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "task_activity")
-@Getter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TaskActivity {
 
     @Id

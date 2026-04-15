@@ -1,4 +1,4 @@
-ackage com.nexusapi.security;
+package com.nexusapi.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -17,11 +17,14 @@ import java.util.function.Function;
 /**
  * Handles JWT creation, parsing, and validation.
  *
- * <p>Uses HMAC-SHA256 (HS256) signing with a configurable secret key.
+ * <p>
+ * Uses HMAC-SHA256 (HS256) signing with a configurable secret key.
  * The secret must be at least 256 bits (32 ASCII characters) to satisfy
  * the HS256 minimum key length requirement.
  *
- * <p>Token structure:
+ * <p>
+ * Token structure:
+ * 
  * <pre>
  *   Header:  { "alg": "HS256", "typ": "JWT" }
  *   Payload: { "sub": "user@email.com", "role": "USER",
@@ -54,9 +57,9 @@ public class JwtService {
         // Embed the role in the token so downstream services can authorise
         // without a database lookup on every request.
         extraClaims.put("role", userDetails.getAuthorities().stream()
-            .findFirst()
-            .map(Object::toString)
-            .orElse("ROLE_USER"));
+                .findFirst()
+                .map(Object::toString)
+                .orElse("ROLE_USER"));
         return buildToken(extraClaims, userDetails, jwtExpiration);
     }
 
@@ -69,17 +72,16 @@ public class JwtService {
      * @return signed compact JWT
      */
     private String buildToken(
-        Map<String, Object> extraClaims,
-        UserDetails userDetails,
-        long expiration
-    ) {
+            Map<String, Object> extraClaims,
+            UserDetails userDetails,
+            long expiration) {
         return Jwts.builder()
-            .claims(extraClaims)
-            .subject(userDetails.getUsername())
-            .issuedAt(new Date(System.currentTimeMillis()))
-            .expiration(new Date(System.currentTimeMillis() + expiration))
-            .signWith(getSigningKey())
-            .compact();
+                .claims(extraClaims)
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSigningKey())
+                .compact();
     }
 
     // ---------------------------------------------------------------------------
@@ -89,11 +91,12 @@ public class JwtService {
     /**
      * Validates a token against the provided user details.
      *
-     * <p>Checks:
+     * <p>
+     * Checks:
      * <ol>
-     *   <li>The subject matches the user's username (email)</li>
-     *   <li>The token has not expired</li>
-     *   <li>The signature is valid (implicit in {@link #extractAllClaims})</li>
+     * <li>The subject matches the user's username (email)</li>
+     * <li>The token has not expired</li>
+     * <li>The signature is valid (implicit in {@link #extractAllClaims})</li>
      * </ol>
      *
      * @param token       the JWT to validate
@@ -142,14 +145,15 @@ public class JwtService {
      *
      * @param token the JWT string
      * @return all claims from the verified token
-     * @throws JwtException if the token is malformed, expired, or has an invalid signature
+     * @throws JwtException if the token is malformed, expired, or has an invalid
+     *                      signature
      */
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
-            .verifyWith(getSigningKey())
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     private boolean isTokenExpired(String token) {

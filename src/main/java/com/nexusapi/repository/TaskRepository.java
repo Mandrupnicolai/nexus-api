@@ -1,4 +1,4 @@
-ackage com.nexusapi.repository;
+package com.nexusapi.repository;
 
 import com.nexusapi.entity.Task;
 import com.nexusapi.entity.Task.TaskStatus;
@@ -14,11 +14,13 @@ import java.util.UUID;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, UUID> {
     Page<Task> findByProjectIdAndDeletedAtIsNull(UUID projectId, Pageable pageable);
+
     Page<Task> findByProjectIdAndStatusAndDeletedAtIsNull(UUID projectId, TaskStatus status, Pageable pageable);
+
     Optional<Task> findByIdAndDeletedAtIsNull(UUID id);
 
     @Query("SELECT t FROM Task t WHERE t.project.id = :projectId AND t.assignee.id = :userId AND t.deletedAt IS NULL")
     Page<Task> findByProjectIdAndAssigneeIdAndDeletedAtIsNull(@Param("projectId") UUID projectId,
-                                                               @Param("userId") UUID userId,
-                                                               Pageable pageable);
+            @Param("userId") UUID userId,
+            Pageable pageable);
 }

@@ -1,4 +1,4 @@
-ackage com.nexusapi.exception;
+package com.nexusapi.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.OffsetDateTime;
@@ -13,7 +13,9 @@ public class ApiError {
     private String path;
     private List<FieldError> fieldErrors;
 
-    public ApiError() { this.timestamp = OffsetDateTime.now(); }
+    public ApiError() {
+        this.timestamp = OffsetDateTime.now();
+    }
 
     public ApiError(int status, String error, String message, String path) {
         this();
@@ -23,17 +25,50 @@ public class ApiError {
         this.path = path;
     }
 
-    public record FieldError(String field, String message) {}
+    public record FieldError(String field, String message) {
+    }
 
-    public OffsetDateTime getTimestamp() { return timestamp; }
-    public int getStatus() { return status; }
-    public void setStatus(int status) { this.status = status; }
-    public String getError() { return error; }
-    public void setError(String error) { this.error = error; }
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
-    public String getPath() { return path; }
-    public void setPath(String path) { this.path = path; }
-    public List<FieldError> getFieldErrors() { return fieldErrors; }
-    public void setFieldErrors(List<FieldError> fieldErrors) { this.fieldErrors = fieldErrors; }
+    public OffsetDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public List<FieldError> getFieldErrors() {
+        return fieldErrors;
+    }
+
+    public void setFieldErrors(List<FieldError> fieldErrors) {
+        this.fieldErrors = fieldErrors;
+    }
 }

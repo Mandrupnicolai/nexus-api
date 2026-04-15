@@ -1,4 +1,4 @@
-ackage com.nexusapi.mapper;
+package com.nexusapi.mapper;
 
 import com.nexusapi.dto.response.TaskResponse;
 import com.nexusapi.dto.response.UserResponse;
@@ -10,7 +10,8 @@ import org.springframework.stereotype.Component;
 public class TaskMapper {
 
     public TaskResponse toResponse(Task task) {
-        if (task == null) return null;
+        if (task == null)
+            return null;
         TaskResponse r = new TaskResponse();
         r.setId(task.getId());
         r.setTitle(task.getTitle());
@@ -27,7 +28,8 @@ public class TaskMapper {
     }
 
     public UserResponse toUserResponse(User user) {
-        if (user == null) return null;
+        if (user == null)
+            return null;
         UserResponse r = new UserResponse();
         r.setId(user.getId());
         r.setDisplayName(user.getDisplayName());

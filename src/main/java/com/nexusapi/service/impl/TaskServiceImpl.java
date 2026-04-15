@@ -1,4 +1,4 @@
-ackage com.nexusapi.service.impl;
+package com.nexusapi.service.impl;
 
 import com.nexusapi.dto.request.CreateTaskRequest;
 import com.nexusapi.dto.request.UpdateTaskRequest;
@@ -28,23 +28,26 @@ import java.util.UUID;
 /**
  * Business logic for task management.
  *
- * <p>This service is the authoritative entry-point for all task operations.
+ * <p>
+ * This service is the authoritative entry-point for all task operations.
  * It enforces:
  * <ul>
- *   <li>Ownership and team membership checks</li>
- *   <li>Task status machine transitions</li>
- *   <li>Activity logging on every state change</li>
- *   <li>Real-time WebSocket notifications to connected clients</li>
- *   <li>Redis cache invalidation on mutations</li>
+ * <li>Ownership and team membership checks</li>
+ * <li>Task status machine transitions</li>
+ * <li>Activity logging on every state change</li>
+ * <li>Real-time WebSocket notifications to connected clients</li>
+ * <li>Redis cache invalidation on mutations</li>
  * </ul>
  *
- * <p>All write methods are {@code @Transactional} — if a WebSocket notification
- * fails, the database change is still committed (notifications are best-effort).
+ * <p>
+ * All write methods are {@code @Transactional} — if a WebSocket notification
+ * fails, the database change is still committed (notifications are
+ * best-effort).
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional(readOnly = true)  // Default: read-only; overridden per write method
+@Transactional(readOnly = true) // Default: read-only; overridden per write method
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
@@ -60,11 +63,12 @@ public class TaskServiceImpl implements TaskService {
     /**
      * Returns a paginated list of tasks for a project.
      *
-     * <p>Results are cached in Redis keyed by project ID + page parameters.
+     * <p>
+     * Results are cached in Redis keyed by project ID + page parameters.
      * The cache is evicted on any mutation to tasks in this project.
      *
-     * @param projectId the project to query
-     * @param pageable  pagination and sorting parameters
+     * @param projectId   the project to query
+     * @param pageable    pagination and sorting parameters
      * @param currentUser the requesting user (used for access control)
      * @return page of task response DTOs
      */
@@ -72,7 +76,7 @@ public class TaskServiceImpl implements TaskService {
     public Page<TaskResponse> getTasksByProject(UUID projectId, Pageable pageable, User currentUser) {
         validateProjectAccess(projectId, currentUser);
         return taskRepository.findByProjectIdAndDeletedAtIsNull(projectId, pageable)
-            .map(taskMapper::toResponse);
+                .map(taskMapper::toResponse);
     }
 
     /**
@@ -98,7 +102,8 @@ public class TaskServiceImpl implements TaskService {
     /**
      * Creates a new task in the specified project.
      *
-     * <p>The creating user is recorded as {@code createdBy}. The task starts
+     * <p>
+     * The creating user is recorded as {@code createdBy}. The task starts
      * in {@code TODO} status with the provided priority (default MEDIUM).
      *
      * @param request     the task creation DTO
@@ -109,25 +114,25 @@ public class TaskServiceImpl implements TaskService {
     @CacheEvict(value = "tasks", allEntries = true)
     public TaskResponse createTask(CreateTaskRequest request, User currentUser) {
         var project = projectRepository.findByIdAndDeletedAtIsNull(request.projectId())
-            .orElseThrow(() -> new ResourceNotFoundException("Project", request.projectId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Project", request.projectId()));
 
         validateProjectAccess(project.getId(), currentUser);
 
         User assignee = null;
         if (request.assigneeId() != null) {
             assignee = userRepository.findByIdAndDeletedAtIsNull(request.assigneeId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", request.assigneeId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("User", request.assigneeId()));
         }
 
         Task task = Task.builder()
-            .title(request.title())
-            .description(request.description())
-            .project(project)
-            .assignee(assignee)
-            .createdBy(currentUser)
-            .priority(request.priority() != null ? request.priority() : Task.Priority.MEDIUM)
-            .dueDate(request.dueDate())
-            .build();
+                .title(request.title())
+                .description(request.description())
+                .project(project)
+                .assignee(assignee)
+                .createdBy(currentUser)
+                .priority(request.priority() != null ? request.priority() : Task.Priority.MEDIUM)
+                .dueDate(request.dueDate())
+                .build();
 
         Task saved = taskRepository.save(task);
         log.info("Task created: {} in project {}", saved.getId(), project.getId());
@@ -142,7 +147,8 @@ public class TaskServiceImpl implements TaskService {
     /**
      * Updates an existing task's mutable fields.
      *
-     * <p>Only the task's project members can update tasks. Status transitions
+     * <p>
+     * Only the task's project members can update tasks. Status transitions
      * are validated by the {@link Task#transitionTo} state machine.
      *
      * @param taskId      the task to update
@@ -152,7 +158,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws IllegalStateException if the status transition is not permitted
      */
     @Transactional
-    @CacheEvict(value = {"tasks", "task"}, allEntries = true)
+    @CacheEvict(value = { "tasks", "task" }, allEntries = true)
     public TaskResponse updateTask(UUID taskId, UpdateTaskRequest request, User currentUser) {
         Task task = findActiveTask(taskId);
         validateTaskAccess(task, currentUser);
@@ -175,7 +181,7 @@ public class TaskServiceImpl implements TaskService {
         }
         if (request.assigneeId() != null) {
             User newAssignee = userRepository.findByIdAndDeletedAtIsNull(request.assigneeId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", request.assigneeId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("User", request.assigneeId()));
             task.assignTo(newAssignee, currentUser);
         }
 
@@ -191,13 +197,14 @@ public class TaskServiceImpl implements TaskService {
     /**
      * Soft-deletes a task.
      *
-     * <p>Only the task creator or a team admin can delete tasks.
+     * <p>
+     * Only the task creator or a team admin can delete tasks.
      *
      * @param taskId      the task to delete
      * @param currentUser the authenticated user requesting deletion
      */
     @Transactional
-    @CacheEvict(value = {"tasks", "task"}, allEntries = true)
+    @CacheEvict(value = { "tasks", "task" }, allEntries = true)
     @PreAuthorize("hasRole('ADMIN') or @taskSecurityService.isTaskCreator(#taskId, #currentUser)")
     public void deleteTask(UUID taskId, User currentUser) {
         Task task = findActiveTask(taskId);
@@ -213,12 +220,13 @@ public class TaskServiceImpl implements TaskService {
 
     private Task findActiveTask(UUID taskId) {
         return taskRepository.findByIdAndDeletedAtIsNull(taskId)
-            .orElseThrow(() -> new ResourceNotFoundException("Task", taskId));
+                .orElseThrow(() -> new ResourceNotFoundException("Task", taskId));
     }
 
     private void validateProjectAccess(UUID projectId, User user) {
         // Admins bypass team membership checks
-        if (user.getRole() == User.Role.ADMIN) return;
+        if (user.getRole() == User.Role.ADMIN)
+            return;
 
         boolean isMember = projectRepository.isUserMemberOfProjectTeam(projectId, user.getId());
         if (!isMember) {

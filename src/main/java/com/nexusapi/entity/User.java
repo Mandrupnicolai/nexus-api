@@ -1,4 +1,4 @@
-ackage com.nexusapi.entity;
+package com.nexusapi.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

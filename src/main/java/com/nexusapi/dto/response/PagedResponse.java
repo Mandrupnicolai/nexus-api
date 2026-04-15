@@ -1,4 +1,4 @@
-ackage com.nexusapi.dto.response;
+package com.nexusapi.dto.response;
 
 import org.springframework.data.domain.Page;
 import java.util.List;

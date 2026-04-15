@@ -1,4 +1,4 @@
-ackage com.nexusapi.exception;
+package com.nexusapi.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -16,11 +16,14 @@ import java.util.*;
 /**
  * Centralised exception handling for all controllers.
  *
- * <p>Extends {@link ResponseEntityExceptionHandler} to intercept Spring MVC's
+ * <p>
+ * Extends {@link ResponseEntityExceptionHandler} to intercept Spring MVC's
  * built-in exceptions (e.g. validation failures) and converts them into a
  * consistent, API-friendly JSON structure.
  *
- * <p>Response body format:
+ * <p>
+ * Response body format:
+ * 
  * <pre>
  * {
  *   "timestamp": "2024-01-15T12:00:00Z",
@@ -31,7 +34,9 @@ import java.util.*;
  * }
  * </pre>
  *
- * <p>Validation error response includes a per-field breakdown:
+ * <p>
+ * Validation error response includes a per-field breakdown:
+ * 
  * <pre>
  * {
  *   "errors": {
@@ -51,31 +56,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(
-        ResourceNotFoundException ex, WebRequest request
-    ) {
+            ResourceNotFoundException ex, WebRequest request) {
         log.debug("Resource not found: {}", ex.getMessage());
         return buildError(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<ApiError> handleForbidden(
-        ForbiddenException ex, WebRequest request
-    ) {
+            ForbiddenException ex, WebRequest request) {
         log.warn("Access denied: {}", ex.getMessage());
         return buildError(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ApiError> handleConflict(
-        ConflictException ex, WebRequest request
-    ) {
+            ConflictException ex, WebRequest request) {
         return buildError(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ApiError> handleIllegalState(
-        IllegalStateException ex, WebRequest request
-    ) {
+            IllegalStateException ex, WebRequest request) {
         return buildError(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
@@ -85,15 +86,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> handleAccessDenied(
-        AccessDeniedException ex, WebRequest request
-    ) {
+            AccessDeniedException ex, WebRequest request) {
         return buildError(HttpStatus.FORBIDDEN, "Access denied", request);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiError> handleBadCredentials(
-        BadCredentialsException ex, WebRequest request
-    ) {
+            BadCredentialsException ex, WebRequest request) {
         // Generic message — never reveal whether the email or password was wrong
         return buildError(HttpStatus.UNAUTHORIZED, "Invalid credentials", request);
     }
@@ -108,11 +107,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
-        MethodArgumentNotValidException ex,
-        HttpHeaders headers,
-        HttpStatusCode status,
-        WebRequest request
-    ) {
+            MethodArgumentNotValidException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
         Map<String, String> fieldErrors = new LinkedHashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error -> {
             String field = error instanceof FieldError fe ? fe.getField() : error.getObjectName();
@@ -120,13 +118,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         });
 
         ApiError body = ApiError.builder()
-            .timestamp(Instant.now())
-            .status(HttpStatus.BAD_REQUEST.value())
-            .error("Validation failed")
-            .message("Request body contains invalid fields")
-            .path(extractPath(request))
-            .fieldErrors(fieldErrors)
-            .build();
+                .timestamp(Instant.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Validation failed")
+                .message("Request body contains invalid fields")
+                .path(extractPath(request))
+                .fieldErrors(fieldErrors)
+                .build();
 
         log.debug("Validation failed: {}", fieldErrors);
         return ResponseEntity.badRequest().body(body);
@@ -145,10 +143,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ApiError> handleGeneral(Exception ex, WebRequest request) {
         log.error("Unhandled exception: {}", ex.getMessage(), ex);
         return buildError(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "An unexpected error occurred. Please try again later.",
-            request
-        );
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "An unexpected error occurred. Please try again later.",
+                request);
     }
 
     // ---------------------------------------------------------------------------
@@ -156,15 +153,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     // ---------------------------------------------------------------------------
 
     private ResponseEntity<ApiError> buildError(
-        HttpStatus status, String message, WebRequest request
-    ) {
+            HttpStatus status, String message, WebRequest request) {
         ApiError body = ApiError.builder()
-            .timestamp(Instant.now())
-            .status(status.value())
-            .error(status.getReasonPhrase())
-            .message(message)
-            .path(extractPath(request))
-            .build();
+                .timestamp(Instant.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message(message)
+                .path(extractPath(request))
+                .build();
         return ResponseEntity.status(status).body(body);
     }
 

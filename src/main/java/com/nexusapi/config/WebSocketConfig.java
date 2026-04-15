@@ -1,4 +1,4 @@
-ackage com.nexusapi.config;
+package com.nexusapi.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -19,7 +19,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-            .setAllowedOriginPatterns("*")
-            .withSockJS();
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
     }
 }

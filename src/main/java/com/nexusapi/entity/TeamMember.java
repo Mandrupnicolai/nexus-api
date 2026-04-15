@@ -1,4 +1,4 @@
-ackage com.nexusapi.entity;
+package com.nexusapi.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -6,7 +6,11 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "team_members")
-@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @IdClass(TeamMemberId.class)
 public class TeamMember {
 
@@ -29,5 +33,7 @@ public class TeamMember {
     @Builder.Default
     private Instant joinedAt = Instant.now();
 
-    public enum TeamRole { MEMBER, ADMIN }
+    public enum TeamRole {
+        MEMBER, ADMIN
+    }
 }
