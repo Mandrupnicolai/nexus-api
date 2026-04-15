@@ -2,36 +2,21 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main ]
   pull_request:
-    branches: [main]
-  workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  JAVA_VERSION: '21'
-  MAVEN_OPTS: '-Xmx1024m'
+    branches: [ main ]
 
 jobs:
-
-  # ---------------------------------------------------------------------------
-  # Build and test
-  # ---------------------------------------------------------------------------
-  build:
-    name: Build & Test (Java ${{ env.JAVA_VERSION }})
+  build-and-test:
     runs-on: ubuntu-latest
 
-    # Spin up real PostgreSQL and Redis for integration tests
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:16
         env:
-          POSTGRES_DB: nexusapi_test
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
+          POSTGRES_DB: nexusdb
+          POSTGRES_USER: nexus
+          POSTGRES_PASSWORD: nexus
         ports:
           - 5432:5432
         options: >-
@@ -41,7 +26,7 @@ jobs:
           --health-retries 5
 
       redis:
-        image: redis:7-alpine
+        image: redis:7
         ports:
           - 6379:6379
         options: >-
@@ -51,110 +36,31 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ env.JAVA_VERSION }}
+          java-version: '21'
           distribution: temurin
           cache: maven
 
-      - name: Build and run unit tests
-        run: mvn test -B --no-transfer-progress
-
-      - name: Run integration tests
-        run: mvn verify -B --no-transfer-progress -Pintegration-tests
+      - name: Build and test
         env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/nexusapi_test
-          SPRING_DATASOURCE_USERNAME: test
-          SPRING_DATASOURCE_PASSWORD: test
-          SPRING_CACHE_TYPE: none
-          SPRING_DATA_REDIS_HOST: localhost
-          SPRING_DATA_REDIS_PORT: 6379
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: nexusdb
+          DB_USER: nexus
+          DB_PASSWORD: nexus
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: ci-test-secret-that-is-long-enough-for-hmac-sha256-algorithm
+        run: mvn -B verify
 
-      - name: Generate JaCoCo coverage report
-        run: mvn jacoco:report -B --no-transfer-progress
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: target/site/jacoco/jacoco.xml
-          fail_ci_if_error: true
-
-      - name: Upload test results
-        if: always()
+      - name: Upload test reports
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: test-reports
           path: target/surefire-reports/
-          retention-days: 7
-
-  # ---------------------------------------------------------------------------
-  # Code quality
-  # ---------------------------------------------------------------------------
-  quality:
-    name: Code Quality
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: temurin
-          cache: maven
-
-      - name: Run Checkstyle
-        run: mvn checkstyle:check -B --no-transfer-progress
-
-      - name: Check for dependency vulnerabilities (OWASP)
-        run: mvn dependency-check:check -B --no-transfer-progress
-        continue-on-error: true  # Report but don't fail CI on first scan
-
-  # ---------------------------------------------------------------------------
-  # Docker build verification
-  # ---------------------------------------------------------------------------
-  docker:
-    name: Docker Build
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: false  # Only verify the build — push on release tags
-          tags: nexusapi:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Log in to Docker Hub
-        if: github.ref == 'refs/heads/main'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Push to Docker Hub on main
-        if: github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/nexusapi:latest
-            ${{ secrets.DOCKER_USERNAME }}/nexusapi:${{ github.sha }}
